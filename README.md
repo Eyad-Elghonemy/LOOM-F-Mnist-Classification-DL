@@ -188,7 +188,3 @@ The model was trained on the Fashion-MNIST dataset. See [`F_MNIST.ipynb`](./F_MN
 - The `/classify` endpoint requires a valid `X-API-KEY` header.
 - Never commit your `.env` file — it's excluded via `.gitignore`.
 - CORS is currently set to allow all origins (`*`); restrict this in production.
-
-## License
-
-Add your license information here.
