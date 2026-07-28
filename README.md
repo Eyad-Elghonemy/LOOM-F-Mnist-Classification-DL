@@ -1,4 +1,4 @@
-# Fashion MNIST Classification API
+# Fashion MNIST Classification
 
 A lightweight REST API built with **FastAPI** and **TensorFlow/Keras** that classifies grayscale clothing images into one of the 10 Fashion-MNIST categories.
 
