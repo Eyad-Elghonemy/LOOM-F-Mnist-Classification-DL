@@ -1,7 +1,7 @@
 [project]
-name = "titanic-survival-classification"
+name = "fashon-mnist-classification"
 version = "1.0.0"
-description = "Titanic Survival Classification API"
+description = "fashon-mnist Classification API"
 requires-python = "==3.12.*"
 dependencies = [
     "uvicorn==0.51.0",
