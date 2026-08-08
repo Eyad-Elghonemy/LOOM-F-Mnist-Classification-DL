@@ -20,6 +20,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import requests
 import streamlit as st
+import streamlit.components.v1 as components
 from PIL import Image
 
 # Embedded LOOM logo (base64 PNG, transparent background, Gemini-generated
@@ -430,6 +431,9 @@ div[data-testid="stMetricValue"] {{
     text-transform: uppercase;
     margin-top: -0.2rem;
 }}
+
+/* Note: the hidden helper buttons are hidden via JS (more reliable across
+   Streamlit DOM versions than a CSS :has() marker match) — see components.html below. */
 </style>
 """
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
@@ -730,13 +734,71 @@ with st.sidebar:
             f'fill="none" stroke="currentColor" stroke-width="1.8" '
             f'stroke-linecap="round" stroke-linejoin="round">{NAV_ICONS[slug]}</svg>'
         )
+        # href is a no-op now (javascript:void(0)) — a tiny JS bridge below
+        # intercepts the click and triggers the matching hidden Streamlit
+        # button instead, so we get a normal in-session rerun instead of a
+        # full browser page load.
         nav_html += (
-            f'<a href="?nav={slug}" target="_self" '
+            f'<a href="javascript:void(0);" data-nav-slug="{slug}" '
             f'class="loom-nav-item{" active" if is_active else ""}">'
             f'{icon_svg}<span>{label}</span></a>'
         )
     nav_html += "</div>"
     st.markdown(nav_html, unsafe_allow_html=True)
+
+    # Hidden real Streamlit buttons (one per nav item). Clicking these is a
+    # genuine widget interaction, so Streamlit reruns over the existing
+    # websocket connection — no full page reload like the old <a href="?..">
+    # links caused. They're visually hidden by the JS bridge below (found
+    # and hidden via JS rather than CSS, since it's more reliable across
+    # Streamlit's internal DOM structure).
+    for slug, label in NAV_ITEMS:
+        if st.button(f"\u200bnavslug:{slug}", key=f"navbtn_{slug}"):
+            st.session_state.nav_page = label
+            st.rerun()
+
+    components.html(
+        """
+        <script>
+        const doc = window.parent.document;
+        function hideAndWireNav() {
+            // Hide every helper button (marked by the navslug: text prefix)
+            const buttons = doc.querySelectorAll('div[data-testid="stButton"] button');
+            buttons.forEach((btn) => {
+                if (btn.innerText.indexOf('navslug:') !== -1) {
+                    let el = btn.closest('div[data-testid="stElementContainer"]') || btn.parentElement;
+                    if (el) {
+                        el.style.display = 'none';
+                        el.style.height = '0px';
+                        el.style.margin = '0px';
+                        el.style.padding = '0px';
+                        el.style.overflow = 'hidden';
+                    }
+                }
+            });
+            // Wire the visible nav links to click their matching hidden button
+            const links = doc.querySelectorAll('a[data-nav-slug]');
+            links.forEach((link) => {
+                if (link.dataset.wired) return;
+                link.dataset.wired = "1";
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const slug = link.getAttribute('data-nav-slug');
+                    for (const btn of buttons) {
+                        if (btn.innerText.indexOf('navslug:' + slug) !== -1) {
+                            btn.click();
+                            break;
+                        }
+                    }
+                });
+            });
+        }
+        hideAndWireNav();
+        new MutationObserver(hideAndWireNav).observe(doc.body, {childList: true, subtree: true});
+        </script>
+        """,
+        height=0,
+    )
 
     page = st.session_state.nav_page
 
