@@ -390,24 +390,38 @@ div[data-testid="stMetricValue"] {{
     cursor: pointer;
     display: inline-block;
     border-radius: 10px;
-    transition: transform 0.15s ease, filter 0.15s ease;
+    transition: transform 0.15s ease;
 }}
 .loom-logo-link:hover {{
     transform: translateY(-1px);
-    filter: brightness(1.15);
 }}
 .loom-logo-link:hover .loom-mark-img {{
     filter: drop-shadow(0 0 10px rgba(34,211,238,0.45));
 }}
 .loom-wordmark {{
+    display: inline-block;
     font-family: 'Space Grotesk', sans-serif;
     font-weight: 700;
     font-size: 1.7rem;
     letter-spacing: 0.04em;
-    background-image: linear-gradient(100deg, {ACCENT} 0%, {PRIMARY} 65%);
+    background-image: linear-gradient(100deg, {ACCENT} 0%, {PRIMARY} 30%, {SUCCESS} 50%, {PRIMARY} 70%, {ACCENT} 100%);
+    background-size: 300% auto;
+    background-position: 0% 50%;
     -webkit-background-clip: text;
     background-clip: text;
-    color: transparent;
+    -webkit-text-fill-color: transparent !important;
+    color: transparent !important;
+    transition: background-position 0.5s ease;
+    will-change: background-position;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+}}
+.loom-logo-link:hover .loom-wordmark {{
+    animation: loom-shimmer 1.6s linear infinite;
+}}
+@keyframes loom-shimmer {{
+    from {{ background-position: 0% 50%; }}
+    to   {{ background-position: 300% 50%; }}
 }}
 .loom-wordmark-sub {{
     color: {MUTED};
