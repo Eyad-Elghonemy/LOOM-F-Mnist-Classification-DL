@@ -20,7 +20,6 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import requests
 import streamlit as st
-import streamlit.components.v1 as components
 from PIL import Image
 
 # Embedded LOOM logo (base64 PNG, transparent background, Gemini-generated
@@ -81,6 +80,27 @@ html, body, [class*="css"] {{
     font-family: 'Inter', sans-serif;
 }}
 
+/* --- Themed scrollbar (Webkit/Blink browsers) --- */
+::-webkit-scrollbar {{
+    width: 10px;
+    height: 10px;
+}}
+::-webkit-scrollbar-track {{
+    background: {INK};
+}}
+::-webkit-scrollbar-thumb {{
+    background: linear-gradient(180deg, {PRIMARY} 0%, {ACCENT} 100%);
+    border-radius: 999px;
+    border: 2px solid {INK};
+}}
+::-webkit-scrollbar-thumb:hover {{
+    background: linear-gradient(180deg, {ACCENT} 0%, {PRIMARY} 100%);
+}}
+* {{
+    scrollbar-width: thin;
+    scrollbar-color: {PRIMARY} {INK};
+}}
+
 .stApp {{
     background: radial-gradient(circle at 85% -10%, #1B1440 0%, {INK} 45%) fixed;
     color: {TEXT};
@@ -129,17 +149,26 @@ h1, h2, h3 {{
     padding: 1.1rem 1.3rem;
     position: relative;
     overflow: hidden;
-    transition: transform .18s ease, border-color .18s ease;
+    transition: transform .2s cubic-bezier(.2,.8,.2,1), border-color .2s ease, box-shadow .2s ease;
     height: 100%;
 }}
 .kpi-card:hover {{
-    transform: translateY(-3px);
-    border-color: rgba(139,124,255,0.5);
+    transform: translateY(-4px);
+    border-color: rgba(139,124,255,0.55);
+    box-shadow: 0 12px 26px -10px rgba(139,124,255,0.35), 0 0 0 1px rgba(139,124,255,0.12);
 }}
 .kpi-card .kpi-accent-bar {{
     position: absolute; top: 0; left: 0; bottom: 0; width: 4px;
+    transition: width .2s ease;
 }}
-.kpi-card .kpi-icon {{ font-size: 1.35rem; opacity: 0.9; }}
+.kpi-card:hover .kpi-accent-bar {{ width: 6px; }}
+.kpi-card .kpi-icon {{
+    font-size: 1.35rem;
+    opacity: 0.9;
+    display: inline-block;
+    transition: transform .2s cubic-bezier(.2,.8,.2,1);
+}}
+.kpi-card:hover .kpi-icon {{ transform: scale(1.15) rotate(-3deg); }}
 .kpi-card .kpi-label {{
     color: {MUTED};
     font-size: 0.72rem;
@@ -184,42 +213,40 @@ div[data-testid="stMetricValue"] {{
     font-family: 'JetBrains Mono', monospace;
 }}
 
-/* --- Sidebar navigation menu (custom line-icon links, not st.button) --- */
-.loom-nav {{
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-}}
-.loom-nav-item {{
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
+/* --- Sidebar navigation menu (native st.button, no JS hacks) --- */
+section[data-testid="stSidebar"] div[data-testid="stButton"] button {{
     background: transparent;
     color: {MUTED};
+    border: 1px solid transparent;
     border-left: 3px solid transparent;
-    text-decoration: none !important;
+    text-align: left;
+    justify-content: flex-start;
     font-weight: 500;
     font-size: 0.95rem;
     padding: 0.6rem 0.8rem;
     border-radius: 6px;
-    transition: background .15s ease, color .15s ease, border-color .15s ease;
+    margin-bottom: 0.2rem;
+    width: 100%;
+    box-shadow: none;
 }}
-.loom-nav-icon {{ flex: none; opacity: 0.85; transition: opacity .15s ease; }}
-.loom-nav-item:hover {{
+section[data-testid="stSidebar"] div[data-testid="stButton"] button:hover {{
     background: rgba(139,124,255,0.08);
     color: {TEXT};
     border-left-color: rgba(139,124,255,0.4);
 }}
-.loom-nav-item:hover .loom-nav-icon {{ opacity: 1; }}
-.loom-nav-item.active {{
+section[data-testid="stSidebar"] div[data-testid="stButton"] button:focus:not(:active) {{
+    color: {TEXT};
+    border-left-color: rgba(139,124,255,0.4);
+}}
+section[data-testid="stSidebar"] div[data-testid="stButton"] button[kind="primary"] {{
     background: linear-gradient(90deg, rgba(139,124,255,0.22), rgba(34,211,238,0.05));
-    color: {ACCENT};
+    color: {ACCENT} !important;
     border-left: 3px solid {ACCENT};
     font-weight: 700;
 }}
-.loom-nav-item.active .loom-nav-icon {{ opacity: 1; }}
-.loom-nav-item.active:hover {{
+section[data-testid="stSidebar"] div[data-testid="stButton"] button[kind="primary"]:hover {{
     background: linear-gradient(90deg, rgba(139,124,255,0.28), rgba(34,211,238,0.08));
+    color: {ACCENT} !important;
 }}
 .nav-eyebrow-spacer {{ margin-bottom: 0.4rem; }}
 
@@ -229,20 +256,30 @@ div[data-testid="stMetricValue"] {{
     border: 1px solid {BORDER};
     border-radius: 10px;
     padding: 0.9rem 0.6rem;
+    margin-bottom: 0.85rem;
     text-align: center;
-    transition: transform .15s ease, border-color .15s ease;
+    transition: transform .2s cubic-bezier(.2,.8,.2,1), border-color .2s ease, box-shadow .2s ease, background .2s ease;
 }}
 .class-chip:hover {{
-    transform: translateY(-2px);
-    border-color: rgba(34,211,238,0.5);
+    transform: translateY(-5px) scale(1.035);
+    border-color: rgba(34,211,238,0.65);
+    box-shadow: 0 10px 24px -8px rgba(34,211,238,0.35), 0 0 0 1px rgba(34,211,238,0.15);
+    background: linear-gradient(155deg, #202a4a 0%, {PANEL} 100%);
 }}
-.class-chip .icon {{ font-size: 1.6rem; }}
+.class-chip .icon {{
+    font-size: 1.6rem;
+    display: inline-block;
+    transition: transform .2s cubic-bezier(.2,.8,.2,1);
+}}
+.class-chip:hover .icon {{ transform: scale(1.18) rotate(-4deg); }}
 .class-chip .name {{
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.72rem;
     color: {TEXT};
     margin-top: 0.35rem;
+    transition: color .2s ease;
 }}
+.class-chip:hover .name {{ color: {ACCENT}; }}
 .class-chip .idx {{
     color: {MUTED};
     font-size: 0.65rem;
@@ -254,8 +291,14 @@ div[data-testid="stMetricValue"] {{
     display: flex;
     align-items: center;
     gap: 0.9rem;
-    padding: 0.5rem 0.1rem;
+    padding: 0.75rem 0.6rem;
+    margin: 0 -0.6rem;
+    border-radius: 8px;
     border-bottom: 1px solid {BORDER};
+    transition: background .15s ease;
+}}
+.rank-row:hover {{
+    background: rgba(139,124,255,0.06);
 }}
 .rank-num {{
     font-family: 'JetBrains Mono', monospace;
@@ -271,8 +314,9 @@ div[data-testid="stMetricValue"] {{
     height: 10px;
     overflow: hidden;
 }}
-.rank-bar-fill {{ height: 100%; border-radius: 4px; }}
-.rank-label {{ min-width: 210px; font-size: 0.84rem; color: {TEXT}; }}
+.rank-bar-fill {{ height: 100%; border-radius: 4px; transition: filter .15s ease; }}
+.rank-row:hover .rank-bar-fill {{ filter: brightness(1.25); }}
+.rank-label {{ min-width: 210px; font-size: 0.84rem; color: {TEXT}; line-height: 1.4; }}
 .rank-score {{
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.84rem;
@@ -431,9 +475,6 @@ div[data-testid="stMetricValue"] {{
     text-transform: uppercase;
     margin-top: -0.2rem;
 }}
-
-/* Note: the hidden helper buttons are hidden via JS (more reliable across
-   Streamlit DOM versions than a CSS :has() marker match) — see components.html below. */
 </style>
 """
 st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
@@ -500,39 +541,22 @@ TRAINING_META = {
 if "history" not in st.session_state:
     st.session_state.history = []  # list of dicts: timestamp, filename, class_name, class_index, confidence
 
+# Plain (symbol, label) pairs — symbol is a single monochrome text glyph
+# (not colorful emoji, not SVG-via-JS), so nav is a normal, reliable
+# st.button that works identically on desktop, mobile, and tablet.
 NAV_ITEMS = [
-    ("overview", "Overview"),
-    ("classify", "Classify"),
-    ("batch-classify", "Batch Classify"),
-    ("model-insights", "Model Insights"),
-    ("usage-analytics", "Usage Analytics"),
+    ("▦", "Overview"),
+    ("◎", "Classify"),
+    ("▤", "Batch Classify"),
+    ("⌬", "Model Insights"),
+    ("↗", "Usage Analytics"),
 ]
-
-# Custom line icons (not emoji) for the sidebar nav — consistent single-color
-# stroke style matching the LOOM mark, instead of mismatched OS emoji glyphs.
-NAV_ICONS = {
-    "overview": '<path d="M3 3h7v7H3z"/><path d="M14 3h7v7h-7z"/><path d="M3 14h7v7H3z"/><path d="M14 14h7v7h-7z"/>',
-    "classify": '<path d="M4 8V5a1 1 0 0 1 1-1h3"/><path d="M20 8V5a1 1 0 0 0-1-1h-3"/>'
-                '<path d="M4 16v3a1 1 0 0 0 1 1h3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><circle cx="12" cy="12" r="3"/>',
-    "batch-classify": '<path d="M12 3 2 8l10 5 10-5-10-5Z"/><path d="M2 13l10 5 10-5"/>',
-    "model-insights": '<circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/>'
-                       '<path d="M12 7v4M12 11 6.5 17M12 11l5.5 6"/>',
-    "usage-analytics": '<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
-}
-
 if "nav_page" not in st.session_state:
     st.session_state.nav_page = NAV_ITEMS[0][1]
 
 # Clicking the LOOM wordmark sends ?nav=home — catch it and jump to Overview.
-# Clicking a sidebar nav item sends ?nav=<slug> — map it back to its page name.
-_nav_param = st.query_params.get("nav")
-if _nav_param == "home":
+if st.query_params.get("nav") == "home":
     st.session_state.nav_page = "Overview"
-    st.query_params.clear()
-elif _nav_param is not None:
-    _slug_to_label = {slug: label for slug, label in NAV_ITEMS}
-    if _nav_param in _slug_to_label:
-        st.session_state.nav_page = _slug_to_label[_nav_param]
     st.query_params.clear()
 
 # --------------------------------------------------------------------------
@@ -678,7 +702,7 @@ def fingerprint(*parts) -> str:
 
 def class_grid(counts=None):
     """Renders the 10 Fashion-MNIST classes as chips, optionally with a count under each."""
-    cols = st.columns(5)
+    cols = st.columns(5, gap="medium")
     for i, name in enumerate(CLASS_NAMES):
         with cols[i % 5]:
             count_html = ""
@@ -694,7 +718,7 @@ def class_grid(counts=None):
             )
             st.markdown(html, unsafe_allow_html=True)
         if i % 5 == 4 and i != len(CLASS_NAMES) - 1:
-            cols = st.columns(5)
+            cols = st.columns(5, gap="medium")
 
 
 # --------------------------------------------------------------------------
@@ -726,79 +750,16 @@ with st.sidebar:
     st.markdown('<hr class="rule">', unsafe_allow_html=True)
     st.markdown('<div class="eyebrow nav-eyebrow-spacer">Navigate</div>', unsafe_allow_html=True)
 
-    nav_html = '<div class="loom-nav">'
-    for slug, label in NAV_ITEMS:
+    for symbol, label in NAV_ITEMS:
         is_active = st.session_state.nav_page == label
-        icon_svg = (
-            f'<svg class="loom-nav-icon" width="18" height="18" viewBox="0 0 24 24" '
-            f'fill="none" stroke="currentColor" stroke-width="1.8" '
-            f'stroke-linecap="round" stroke-linejoin="round">{NAV_ICONS[slug]}</svg>'
-        )
-        # href is a no-op now (javascript:void(0)) — a tiny JS bridge below
-        # intercepts the click and triggers the matching hidden Streamlit
-        # button instead, so we get a normal in-session rerun instead of a
-        # full browser page load.
-        nav_html += (
-            f'<a href="javascript:void(0);" data-nav-slug="{slug}" '
-            f'class="loom-nav-item{" active" if is_active else ""}">'
-            f'{icon_svg}<span>{label}</span></a>'
-        )
-    nav_html += "</div>"
-    st.markdown(nav_html, unsafe_allow_html=True)
-
-    # Hidden real Streamlit buttons (one per nav item). Clicking these is a
-    # genuine widget interaction, so Streamlit reruns over the existing
-    # websocket connection — no full page reload like the old <a href="?..">
-    # links caused. They're visually hidden by the JS bridge below (found
-    # and hidden via JS rather than CSS, since it's more reliable across
-    # Streamlit's internal DOM structure).
-    for slug, label in NAV_ITEMS:
-        if st.button(f"\u200bnavslug:{slug}", key=f"navbtn_{slug}"):
+        if st.button(
+            f"{symbol}   {label}",
+            key=f"nav_{label}",
+            width="stretch",
+            type="primary" if is_active else "secondary",
+        ):
             st.session_state.nav_page = label
             st.rerun()
-
-    components.html(
-        """
-        <script>
-        const doc = window.parent.document;
-        function hideAndWireNav() {
-            // Hide every helper button (marked by the navslug: text prefix)
-            const buttons = doc.querySelectorAll('div[data-testid="stButton"] button');
-            buttons.forEach((btn) => {
-                if (btn.innerText.indexOf('navslug:') !== -1) {
-                    let el = btn.closest('div[data-testid="stElementContainer"]') || btn.parentElement;
-                    if (el) {
-                        el.style.display = 'none';
-                        el.style.height = '0px';
-                        el.style.margin = '0px';
-                        el.style.padding = '0px';
-                        el.style.overflow = 'hidden';
-                    }
-                }
-            });
-            // Wire the visible nav links to click their matching hidden button
-            const links = doc.querySelectorAll('a[data-nav-slug]');
-            links.forEach((link) => {
-                if (link.dataset.wired) return;
-                link.dataset.wired = "1";
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const slug = link.getAttribute('data-nav-slug');
-                    for (const btn of buttons) {
-                        if (btn.innerText.indexOf('navslug:' + slug) !== -1) {
-                            btn.click();
-                            break;
-                        }
-                    }
-                });
-            });
-        }
-        hideAndWireNav();
-        new MutationObserver(hideAndWireNav).observe(doc.body, {childList: true, subtree: true});
-        </script>
-        """,
-        height=0,
-    )
 
     page = st.session_state.nav_page
 
