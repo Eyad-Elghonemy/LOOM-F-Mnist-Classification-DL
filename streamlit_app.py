@@ -568,8 +568,10 @@ def api_health(base_url: str, timeout=5):
         if r.status_code == 200:
             return True, r.json().get("message", "Connected")
         return False, f"HTTP {r.status_code}"
-    except requests.exceptions.RequestException as e:
-        return False, str(e)
+    except requests.exceptions.RequestException:
+        return False, "Server is starting up, please wait..."
+    except Exception:
+        return False, "Server is starting up, please wait..."
 
 
 def call_classify(base_url: str, api_key: str, file_bytes: bytes, filename: str, mime: str, timeout=20):
@@ -623,8 +625,12 @@ def check_api_key(base_url: str, api_key: str, timeout=6):
         if r.status_code == 503:
             return True, "Connected"
         return False, f"HTTP {r.status_code}"
-    except requests.exceptions.RequestException as e:
-        return False, str(e)
+    except requests.exceptions.RequestException:
+        return False, "Server unreachable"
+    except UnicodeEncodeError:
+        return False, "Invalid API key (unsupported characters)"
+    except Exception:
+        return False, "Server unreachable"
 
 
 def confidence_band(conf_pct: float):
@@ -735,15 +741,21 @@ with st.sidebar:
 
     server_ok, server_msg = api_health(base_url)
     if not server_ok:
-        status_pill(False, f"Unreachable — {server_msg}")
+        # Server unreachable (cold start, etc.) — don't attempt a key check
+        # yet, that would just raise another connection error.
+        status_pill(False, server_msg)
     elif not api_key:
         status_pill(False, "Enter your API Key above")
     else:
+        # Server is confirmed reachable, safe to validate the key now.
         if "key_check_cache" not in st.session_state:
             st.session_state.key_check_cache = {}
         cache_key = (base_url, api_key)
         if cache_key not in st.session_state.key_check_cache:
-            st.session_state.key_check_cache[cache_key] = check_api_key(base_url, api_key)
+            try:
+                st.session_state.key_check_cache[cache_key] = check_api_key(base_url, api_key)
+            except Exception:
+                st.session_state.key_check_cache[cache_key] = (False, "Server unreachable")
         key_ok, key_msg = st.session_state.key_check_cache[cache_key]
         status_pill(key_ok, key_msg)
 
