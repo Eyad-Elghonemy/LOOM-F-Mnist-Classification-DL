@@ -302,6 +302,7 @@ Every image uploaded to `/classify` goes through the following steps before reac
 4. **Normalize** — divide pixel values by 255 → `[0.0, 1.0]`
 5. **Reshape** — add batch dimension → `(1, 28, 28)`
 6. **Predict** — pass through the Keras model, return `argmax` class + confidence
+7. 
 
 ---
 
